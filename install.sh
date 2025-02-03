@@ -2,10 +2,7 @@
 
 # SOURCES https://vagrant-libvirt.github.io/vagrant-libvirt/examples.html
 # 	  https://developer.hashicorp.com/vagrant/docs/synced-folders/basic_usage
-# 
-
-# work around for v2.4.2: https://github.com/hashicorp/vagrant/issues/13527
-vagrantVersion="2.4.1-1"
+#
 
 
 echo "Check Hardware Virtualisation support by CPU"
@@ -21,18 +18,18 @@ fi
 echo "Some commands require sudo priveleges"
 echo "Up[date/grade] OS components"
 
-sudo apt update; sudo apt upgrade -y; sudo apt dist-upgrade -y; sudo apt autoremove -y; sudo apt autoclean -y;
+sudo apt-get update; sudo apt-get upgrade -y; sudo apt-get dist-upgrade -y; sudo apt-get autoremove -y; sudo apt-get autoclean -y;
 
 echo "Install Libvirt, KVM, VirtioFS and Vagrant"
 
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg --batch --yes
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-sudo apt update
+sudo apt-get update
 
-sudo apt --allow-downgrades --allow-change-held-packages install -y \
+sudo apt-get --allow-downgrades --allow-change-held-packages install -y \
 	cpu-checker \
   bridge-utils \
-	vagrant=$vagrantVersion \
+	vagrant \
 	qemu-kvm \
 	virtiofsd \
 	libvirt-daemon-system \
@@ -50,11 +47,11 @@ echo "Install vagrant-libvirt Plugin and required components"
 sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
 
 #
-sudo apt -y update
+sudo apt-get -y update
 
-sudo apt -y build-dep ruby-libvirt
+sudo apt-get -y build-dep ruby-libvirt
 
-sudo apt install -y --allow-downgrades \
+sudo apt-get install -y --allow-downgrades \
 	dnsmasq-base \
 	ebtables \
 	libvirt-dev \
@@ -68,7 +65,11 @@ vagrant plugin install vagrant-libvirt
 vagrant plugin update
 sudo apt-mark hold vagrant
 
-echo "Provision of the Ubuntu 22.04 LTS VM"
+echo "##########################################
+      ###
+      ### Provision of the Ubuntu 22.04 LTS VM
+      ###
+      ##########################################"
 
 cat <<-VAGRANTFILE > Vagrantfile
 Vagrant.configure("2") do |config|
@@ -87,6 +88,8 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, reboot: true
   config.vm.provision :shell, path: "vagrant/ltsupgrade.sh"
   config.vm.provision :shell, reboot: true
+  #config.vm.provision :shell, path: "vagrant/desktop.sh"
+  #config.vm.provision :shell, reboot: true
 
   config.vm.synced_folder "vagrant/", "/vagrant", type: "virtiofs"
 end
